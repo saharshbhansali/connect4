@@ -1,14 +1,14 @@
+#@staticmethod
 def CreateCursorAndConnection():
     #global sql_host, sql_user, sql_password
     
     def check_db_exists():
         
-        if mycon is None:
+        if mycon.is_connected() == False:
             print("Error in connection, please retry.")
             return False
         
         else:
-            '''
             try:
                 cursor.execute('use connect4;')
                 print('Database exists. Using connect4')
@@ -16,8 +16,7 @@ def CreateCursorAndConnection():
             except:
                 cursor.executemany('create database connect4;', 'use connect4;')
                 print('Database doesn\'t exist. Creating and using connect4.')
-            '''
-
+            
             try:
                 table_create = 'create table UserData(pName varchar(30) primary key, pPass varchar(30) not null, pTotal int default 0, pWins int default 0, pLosses int default 0, pDraws int default 0);'
                 cursor.execute(table_create)
@@ -30,17 +29,19 @@ def CreateCursorAndConnection():
                 os.system('cls')
 
     try:
-        mycon = SQL.connect('connect4.db') #host = f'{sql_host}', user = f'{sql_user}', password = f'{sql_password}')
+        mycon = SQL.connect(host = f'{sql_host}', user = f'{sql_user}', password = f'{sql_password}')
         cursor = mycon.cursor()
         check_db_exists()
         return cursor, mycon
        
-    except SQL.Error as e:
-        print(e)
+    except: #SQL.Error as e:
+        #print(e)
         print('Unexpected ERROR ecountered! \nPlease check system software for compatability.')
         time.sleep(1)
         return None, None
 
+#@staticmethod
+# inherit connection cursor_obj, connection_obj (mycon) from CreateCursor?
 def CloseCursorAndConnection(cursor_obj, connection_obj):
     try:
         cursor_obj.close()
@@ -97,7 +98,7 @@ def RegisterPlayer():
             time.sleep(0.8)
             os.system('cls')
         else: break
-    
+
     password = input("Enter Player Password: ")
     c_pass = input("Confirm Player Password: ")
     
@@ -185,8 +186,8 @@ def UpdatePlayerStats(win_player, loss_player, draw = False):
 
 # imported the game from the same directory
 def Connect4_2PlayerGame():
-    """
-    import random, sys, os, math, pickle as pi, time
+
+    """import random, sys, os, math, pickle as pi, time
     turn = random.randint(0,1)
     starter = turn
     move = 0
@@ -194,14 +195,17 @@ def Connect4_2PlayerGame():
     logs = open('move_logs.dat', 'wb')
     pi.dump(move_list, logs)
     logs.close()
+
     ROW_Count = 6 
     COL_Count = 7 
     Plot_What = 4 
     AI = 'O'
     Human = 'X'
     main_board = {}
+    
     """
-    def new_board(board={}):
+    def new_board(board):
+        global COL_Count, ROW_Count
         # creating board using list composition code adapted to a dictonary. using STACK for each column.
         board = {i : [i if j==ROW_Count else '---' for j in range(ROW_Count+1)] for i in range(COL_Count)} 
         # "j if j==0 else" part is to check if row is printed straight
@@ -321,19 +325,35 @@ def Connect4_2PlayerGame():
             return int_move
             
     def update(move_list, move):
+        logs = open('move_logs.dat', 'rb')
+        move_list = pi.load(logs)
+        logs.close()
+        # check: print('Past moves: ',move_list)
         move_list += [move]
         # check: print('Updated: ', move_list)
-        
+        with open('move_logs.dat', 'wb') as logs:
+            pi.dump(move_list, logs)
+
     def undo(player, opp):
         global main_board, Human, AI, move_list, turn
+        
+        try:
+            logs = open('move_logs.dat', 'rb')
+            move_list = pi.load(logs)
+            # check: print('loaded: ',move_list)
+            logs.close()
+        except: pass
 
         if len(move_list) <= 0:
             print('Cannot undo, board is empty.')
         else:
             del move_list[len(move_list)-1:]
             # check: print('reduced list: ', move_list)
-            
-            main_board = new_board()
+
+            with open('move_logs.dat', 'wb') as logs:
+                pi.dump(move_list, logs)
+
+            main_board = new_board(main_board)
 
             for i in range(len(move_list)):
                 m = move_list[i]
@@ -359,21 +379,17 @@ def Connect4_2PlayerGame():
         return valid_loc
     
     global main_board, turn, starter, move, move_list, ROW_Count, COL_Count, Plot_What, AI, Human
-    turn = random.randint(0,1)
-    starter = turn
-    move = 0  
-    move_list = []    
-    main_board = new_board()
+    main_board = new_board(main_board)
     winner = win_condition()
 
     while not winner:
         menu = ' '
-        '''try:
+        try:
                 logs = open('move_logs.dat', 'rb')
                 move_list = pi.load(logs)
                 # check: print('loaded: ',move_list)
                 logs.close()
-        except: pass'''
+        except: pass
         
         menu = input('Enter:\n"QUIT" to exit.\n"UNDO" to undo last move\nClick the "Enter" key to continue with the game: ')
         os.system('cls')
@@ -443,6 +459,11 @@ turn = random.randint(0,1)
 starter = turn
 move = 0
 move_list = []
+
+logs = open('move_logs.dat', 'wb')
+pi.dump(move_list, logs)
+logs.close()
+
 ROW_Count = 6 
 COL_Count = 7 
 Plot_What = 4 
@@ -451,7 +472,7 @@ Human = 'X'
 main_board = {}
 
 # Data Handling variables and imports.
-import sqlite3 as SQL, time, sys, os #mysql.connector as SQL,
+import time, sys, os, mysql.connector as SQL #sqlite3 as SQL,
 #print(dir(SQL))
 #help(SQL)
 
@@ -464,11 +485,9 @@ sub_menu = 0
 main_menu = 0
 player1, player2 = '', ''
 
-'''
 sql_host = input('Enter SQL Server Host name: ')
 sql_user = input('Enter SQL Server Username: ')
 sql_password = input('Enter SQL Server Password: ')
-'''
 
 main_cursor, main_connection = CreateCursorAndConnection()
 if (main_cursor, main_connection) == (None, None): cont = 'no'
@@ -476,7 +495,7 @@ else: CloseCursorAndConnection(main_cursor, main_connection)
 
 while cont.upper() == 'Y':
     main_menu = input('MAIN MENU: \n1. Single Player \n2. Two Players \n3. Leaderboard \n4. Quit \n>>> ')
-    # 1, 3 and 4 working
+    
     if main_menu in ('1', '2', '3', '4'):
         time.sleep(1)
         os.system('cls')
@@ -484,12 +503,6 @@ while cont.upper() == 'Y':
         if main_menu == '1': #SINGLE PLAYER (both AI and Guest are there.)        
             import Connect4 as C4
             C4.main()
-            C4.opponent_choice = ''
-            C4.turn = random.randint(0,1)
-            C4.starter = C4.turn
-            C4.move = 0
-            C4.move_list = []
-            C4.main_board = C4.new_board() 
 
         elif main_menu == '2': #2 PLAYERS
             player1, player2 = '', ''
@@ -525,11 +538,9 @@ while cont.upper() == 'Y':
                     if log_out_player == player1:
                         player1 = ''
                         print(f'{log_out_player} successfully Logged-Out')
-                    
                     elif log_out_player == player2: 
                         player2 = ''
                         print(f'{log_out_player} successfully Logged-Out')
-                    
                     else:
                         print('Incorrect Player Name entered, please retry.')
                     
@@ -537,12 +548,11 @@ while cont.upper() == 'Y':
                     continue
                 
                 elif (player1 == '' or player2 == '') and sub_menu == '3':
-                    print('This option needs 2 players to be logged in. \n\nPlease Log-In and RETRY.')
+                    print('This option needs 2 players to be logged in. \nPlease Log-In and RETRY.')
                     time.sleep(0.5)
 
                 elif sub_menu == '3' and (bool(player1) == bool(player2) == True) and player1 != player2: #2 PLAYER GAME
                     result = Connect4_2PlayerGame()
-                    #play the game
 
                     if result == 'Player 1 (X) Wins!':
                         UpdatePlayerStats(win_player = player1, loss_player = player2, draw = False)
@@ -558,7 +568,7 @@ while cont.upper() == 'Y':
                     
                     else:
                         print('ERROR! The game ended unexpectedly.')
-                        
+                    
                     time.sleep(2)
                     result = ''
 

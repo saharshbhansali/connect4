@@ -1,0 +1,32 @@
+CreateCursorAndConnection() - To create cursor and connection objects for MySQL connectivity
+Nested functions: check_db_exists() - To check if table and database exist
+CloseCursorAndConnection(cursor_obj, connection_obj) - To close the created cursor and connection objects for MySQL connectivity
+SelectAllPlayerStats() - To display all players' data
+SelectPlayerStats() - To display specific player's data
+RegisterPlayer() - To add player to the database
+PlayerLogin() - To log the player in for the game
+UpdatePlayerStats() - To update the players' data after a match
+Connect4_2PlayerGame() - To run the 2 player (human) Connect4 game
+Nested Functions: new_board(), display(), win_condition(), move_maker(), check_legal(), update(), undo(), all_valid_loc()
+
+MODULES:
+
+Built-in Modules:
+random - random.randint() - To randomly assign starting move
+sys - sys.exit() - To close the program
+os - os.system('cls') - To clear the screen of the command window
+math - math.inf - To use the value 'infinity'
+time - time.sleep() - To add time delays in between screen changes
+sqlite3 - To use SQL from Python
+Functions and objects used from sqlite3:
+connect('connect4.db')
+mycon.cursor()
+cursor.execute()
+cursor.commit()
+cursor.rollback()
+
+User defined module:
+Connect4 - To run the Connect4 game
+Functions: main(), new_board()
+Variables: opponent_choice, turn, starter, move, move_list, main_board
+
